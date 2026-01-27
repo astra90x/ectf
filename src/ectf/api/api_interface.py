@@ -117,7 +117,7 @@ class Config:
     @property
     def configured(self) -> bool:
         """Check if Config is configured or empty"""
-        return not (self.token is self.git_url is self.api_url is None)
+        return not (self.token is None or self.git_url is None or self.api_url is None)
 
     def assert_configured(self) -> None:
         """Assert that the Config is configured and exit if not"""
