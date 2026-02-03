@@ -208,6 +208,6 @@ def interrogate(pin: PINArgTy) -> None:
         sys.exit(-1)
 
     for slot, groupid, name in file_list:
-        info(f"Found remote file: Slot {slot}, Group {groupid}, {name.decode()}")
+        info(f"Found remote file: Slot {slot:x}, Group {groupid:x}, {name.decode()}")
 
     success("Interrogate successful")
