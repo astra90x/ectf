@@ -55,7 +55,7 @@ def _(e: APIError, custom: dict[Hashable, str] | None = None) -> NoReturn:
 
     match e.status:
         case HTTPStatus.UNAUTHORIZED:
-            error("Token rejected! Use `ectf api config` to set token")
+            error("Token rejected! Use `ectf config` to set token")
         case HTTPStatus.FORBIDDEN:
             error("Your team must be in the Attack Phase to use this API")
         case HTTPStatus.INTERNAL_SERVER_ERROR:
@@ -122,7 +122,7 @@ class Config:
     def assert_configured(self) -> None:
         """Assert that the Config is configured and exit if not"""
         if not self.configured:
-            error("Config file does not yet exist! Use `ectf api config` to generate")
+            error("Config file does not yet exist! Use `ectf config` to generate")
             sys.exit(-1)
 
 
