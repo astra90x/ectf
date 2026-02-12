@@ -73,6 +73,18 @@ def gen_flow_app(flow: str, app: typer.Typer, *exclude: str) -> typer.Typer:
         ) -> None:
             """Submit a commit to the API"""
             url = API.config.git_url if url is None else url
+            if url.startswith("https"):
+                err_msg = (
+                    "Please do not clone with HTTPS, "
+                    "instead clone with SSH, edit your url with ectf config -f"
+                )
+                error(err_msg)
+                sys.exit(-1)
+            if url.startswith("ssh://") and ":" in url[6:]:
+                err_msg = (
+                    "When using ssh:// in the url that follows make sure to "
+                    'replace ":" with "/", edit your url with ectf config -f'
+                )
             flow_submit(flow, {"git_url": url, "commit_hash": commit})
 
     if "cancel" not in exclude:
@@ -141,7 +153,7 @@ def flow_info(flow: str, flow_id: str, custom: CustomHandlerTy = None) -> None:
         defaults = {
             HTTPStatus.NOT_FOUND: f"{f_cap} {flow_id} not found!"
             f" Check `ectf {flow} list`",
-            HTTPStatus.UNPROCESSABLE_CONTENT: f"ID [bright_yellow]{flow_id}[/]"
+            HTTPStatus.UNPROCESSABLE_ENTITY: f"ID [bright_yellow]{flow_id}[/]"
             f" is not a valid {f_cap} ID! Check `ectf {flow} list`",
         }
         if custom is not None:
@@ -170,7 +182,7 @@ def flow_cancel(flow: str, flow_id: str, custom: CustomHandlerTy = None) -> None
         defaults = {
             HTTPStatus.NOT_FOUND: f"{f_cap} {flow_id} not found!"
             f" Check `ectf {flow} list`",
-            HTTPStatus.UNPROCESSABLE_CONTENT: f"ID [bright_yellow]{flow_id}[/]"
+            HTTPStatus.UNPROCESSABLE_ENTITY: f"ID [bright_yellow]{flow_id}[/]"
             f" is not a valid {flow} ID! Check `ectf {flow} list`",
             HTTPStatus.BAD_REQUEST: "Cannot cancel!"
             f" {f_cap} {flow_id} has already completed",
@@ -195,7 +207,7 @@ def flow_get(
     except (APIError, RequestException) as e:
         defaults = {
             HTTPStatus.NOT_FOUND: f"Job {job_id} not found! Check `ectf {flow} list`",
-            HTTPStatus.UNPROCESSABLE_CONTENT: f"ID [bright_yellow]{job_id}[/]"
+            HTTPStatus.UNPROCESSABLE_ENTITY: f"ID [bright_yellow]{job_id}[/]"
             f" is not a valid job ID! Check `ectf {flow} list`",
         }
         if custom is not None:
@@ -226,7 +238,7 @@ def flow_update(
             HTTPStatus.BAD_REQUEST: "Cannot update!"
             f" Job {job_id} is not in the pending state",
             HTTPStatus.NOT_FOUND: f"Job {job_id} not found! Check `ectf {flow} list`",
-            HTTPStatus.UNPROCESSABLE_CONTENT: f"ID [bright_yellow]{job_id}[/]"
+            HTTPStatus.UNPROCESSABLE_ENTITY: f"ID [bright_yellow]{job_id}[/]"
             f" is not a valid job ID! Check `ectf {flow} list`",
         }
         if custom is not None:
