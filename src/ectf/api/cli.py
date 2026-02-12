@@ -47,6 +47,20 @@ def submit(
 ) -> None:
     """Submit a commit to the API"""
     url = API.config.git_url if url is None else url
+    if url.startswith("https"):
+        err_msg = (
+            "Please do not clone with HTTPS, "
+            "instead clone with SSH, edit your url with ectf config -f"
+        )
+        error(err_msg)
+        sys.exit(-1)
+    if url.startswith("ssh://") and ":" in url[6:]:
+        err_msg = (
+            "When using ssh:// in the url that follows make sure to "
+            'replace ":" with "/", edit your url with ectf config -f'
+        )
+        error(err_msg)
+        sys.exit(-1)
     flow_submit(
         "submit",
         {"git_url": url, "commit_hash": commit},
@@ -68,9 +82,7 @@ def flag_photo(
     try:
         flag = API.submit_flag_file("team_photo", photo)
     except (APIError, RequestException) as e:
-        handle_api_exception(
-            e, {HTTPStatus.UNPROCESSABLE_CONTENT: "File is not a PNG!"}
-        )
+        handle_api_exception(e, {HTTPStatus.UNPROCESSABLE_ENTITY: "File is not a PNG!"})
     success("Congrats! Your photo was accepted! Please submit the following flag:")
     info(flag)
 
@@ -89,9 +101,7 @@ def flag_design(
     try:
         flag = API.submit_flag_file("design_doc", design)
     except (APIError, RequestException) as e:
-        handle_api_exception(
-            e, {HTTPStatus.UNPROCESSABLE_CONTENT: "File is not a PDF!"}
-        )
+        handle_api_exception(e, {HTTPStatus.UNPROCESSABLE_ENTITY: "File is not a PDF!"})
     success("Congrats! Your design doc was accepted! Please submit the following flag:")
     info(flag)
 

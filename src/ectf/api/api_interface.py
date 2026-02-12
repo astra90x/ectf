@@ -66,7 +66,11 @@ def _(e: APIError, custom: dict[Hashable, str] | None = None) -> NoReturn:
                 " Please cancel them or wait for them to finish before submitting"
             )
         case _:
-            error(f"Unexpected response {e.status}! Please contact organizers")
+            error(
+                f"Server responded with response {e.status}."
+                f" The server included the message {e.response.json()['detail']}."
+                " If you think this is a mistake please contact the organizers"
+            )
     sys.exit(-1)
 
 
