@@ -153,8 +153,8 @@ class HTTPBearerAuth(AuthBase):
 class Status(IntEnum):
     """Status of a Job or Flow"""
 
-    QUEUED = auto()
     SUCCEEDED = auto()
+    QUEUED = auto()
     RUNNING = auto()
     PENDING = auto()
     CANCELED = auto()
