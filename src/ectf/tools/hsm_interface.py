@@ -11,6 +11,7 @@ Copyright: Copyright (c) 2025 The MITRE Corporation
 """
 
 import struct
+import time
 from collections.abc import Iterator, Mapping
 from enum import IntEnum
 from typing import Any, ClassVar, Self
@@ -19,7 +20,7 @@ from attrs import define
 from serial import Serial
 from serial.serialutil import SerialTimeoutException
 
-from ectf.console import debug, info
+from ectf.console import debug, info, warning
 
 
 class Opcode(IntEnum):
@@ -37,6 +38,10 @@ class Opcode(IntEnum):
 
 
 NACK_MSGS = {Opcode.DEBUG, Opcode.ACK}
+
+
+class TimingRequirementError(Exception):
+    """Functional timing requirement failed"""
 
 
 @define
@@ -121,12 +126,14 @@ class HSMIntf:
 
     ser: Serial
     stream: bytes = b""
+    strict_timing: bool = False
 
     @classmethod
     def from_port(
         cls,
         port: str,
         baud: int = 115200,
+        strict_timing: bool = False,
         **serial_kwargs: Mapping[str, Any],
     ) -> Self:
         """Open a serial port and generate an HSMIntf
@@ -137,18 +144,32 @@ class HSMIntf:
         """
         ser = Serial(baudrate=baud, **serial_kwargs)
         ser.port = port
-        return cls(ser)
+        return cls(ser, strict_timing=strict_timing)
 
     def _open(self) -> None:
         """Open the serial connection if not already opened"""
         if not self.ser.is_open:
             self.ser.open()
 
-    def _send_respond(self, msg: Message) -> Message:
+    def _send_respond(self, msg: Message, timing_req_ms: int = 0) -> Message:
+        start = time.perf_counter_ns()
         self.send_msg(msg)
         resp = self.get_msg()
+        end = time.perf_counter_ns()
+
+        # check for bad opcode
         if resp.opcode != msg.opcode:
             raise HSMError(resp)
+
+        # check timing requirements
+        duration = (end - start) // 1000000
+        if 0 < timing_req_ms < duration:
+            err = (
+                f"Command exceeded timing requirement! {duration}ms > {timing_req_ms}ms"
+            )
+            if self.strict_timing:
+                raise TimingRequirementError(err)
+            warning(err)
         return resp
 
     def write_file(self, frame: bytes) -> None:
@@ -159,7 +180,7 @@ class HSMIntf:
         """
         # send write message
         msg = Message(Opcode.WRITE, frame)
-        self._send_respond(msg)
+        self._send_respond(msg, 3000)
 
     def read_file(self, frame: bytes) -> bytes:
         """Read a file from the HSM
@@ -170,7 +191,7 @@ class HSMIntf:
         """
         # send read message
         msg = Message(Opcode.READ, frame)
-        resp = self._send_respond(msg)
+        resp = self._send_respond(msg, 3000)
         return resp.body
 
     def _unpack_files(self, buf: bytes) -> list[FileTy]:
@@ -200,7 +221,7 @@ class HSMIntf:
         :raises HSMError: Error on interrogate failure
         """
         msg = Message(Opcode.INTERROGATE, pin.encode())
-        resp = self._send_respond(msg)
+        resp = self._send_respond(msg, 1000)
 
         return self._unpack_files(resp.body)
 
@@ -210,7 +231,7 @@ class HSMIntf:
         :raises HSMError: Error on listen failure
         """
         msg = Message(Opcode.LISTEN)
-        self._send_respond(msg)
+        self._send_respond(msg)  # no explicit timing requirement
 
     def receive(self, frame: bytes) -> bytes:
         """Receive a file from a neighboring HSM
@@ -221,7 +242,7 @@ class HSMIntf:
         :raises HSMError: Error on receive failure
         """
         msg = Message(Opcode.RECEIVE, frame)
-        resp = self._send_respond(msg)
+        resp = self._send_respond(msg, 3000)
         return resp.body
 
     # this may need to change depending on how we define it...
@@ -236,7 +257,7 @@ class HSMIntf:
         """
         # send list message
         msg = Message(Opcode.LIST, pin.encode())
-        resp = self._send_respond(msg)
+        resp = self._send_respond(msg, 500)
 
         return self._unpack_files(resp.body)
 
