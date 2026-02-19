@@ -116,7 +116,7 @@ wheels = [
 
 [[package]]
 name = "ectf"
-version = "2026.0.7"
+version = "2026.0.8"
 source = { editable = "." }
 dependencies = [
     { name = "arrow" },

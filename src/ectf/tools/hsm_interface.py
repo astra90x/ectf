@@ -133,6 +133,7 @@ class HSMIntf:
         cls,
         port: str,
         baud: int = 115200,
+        *,
         strict_timing: bool = False,
         **serial_kwargs: Mapping[str, Any],
     ) -> Self:
