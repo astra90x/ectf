@@ -219,7 +219,6 @@ def flow_get(
 
 def flow_update(
     flow: str,
-    flow_id: str,
     job_id: str,
     args: typer.FileText,
     custom: CustomHandlerTy = None,
@@ -232,7 +231,7 @@ def flow_update(
         sys.exit(-1)
 
     try:
-        API.flow_update(flow, flow_id, job_id, args_data)
+        API.flow_update(flow, job_id, args_data)
     except (APIError, RequestException) as e:
         defaults = {
             HTTPStatus.BAD_REQUEST: "Cannot update!"
