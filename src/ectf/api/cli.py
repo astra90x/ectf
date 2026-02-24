@@ -21,6 +21,7 @@ from requests import RequestException
 from ectf.api import API
 from ectf.api.api_interface import APIError, handle_api_exception
 from ectf.api.flow import flow_submit, gen_flow_app
+from ectf.api.remote import remote_app
 from ectf.console import error, info, success
 
 app = typer.Typer()
@@ -28,7 +29,6 @@ app = typer.Typer()
 clone_app = gen_flow_app("clone", typer.Typer(), "update")
 test_app = gen_flow_app("test", typer.Typer(), "update")
 submit_app = gen_flow_app("submit", typer.Typer(), "submit")
-remote_app = gen_flow_app("remote", typer.Typer())
 app.add_typer(
     clone_app, name="clone", help="Test that your design can be cloned by the API"
 )
