@@ -28,7 +28,7 @@ app = typer.Typer()
 
 clone_app = gen_flow_app("clone", typer.Typer(), "update")
 test_app = gen_flow_app("test", typer.Typer(), "update")
-submit_app = gen_flow_app("submit", typer.Typer(), "submit")
+submit_app = gen_flow_app("submit", typer.Typer())
 app.add_typer(
     clone_app, name="clone", help="Test that your design can be cloned by the API"
 )
