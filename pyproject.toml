@@ -1,6 +1,6 @@
 [project]
 name = "ectf"
-version = "2026.0.10"
+version = "2026.0.11"
 description = "Tools for eCTF competitors"
 readme = "README.md"
 authors = [
