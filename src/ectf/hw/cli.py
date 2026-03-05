@@ -88,15 +88,15 @@ def flash_ti(
     ] = None,
 ) -> None:
     """Flash a design onto the MSPM0L2228"""
-    if ".elf" in str(infile):
-        err_msg = (
+    with (infile / "hsm.bin" if infile.is_dir() else infile).open("rb") as f:
+        data = f.read()
+    if data.startswith(b"\x7fELF"):
+        error(
             "Do not flash the .elf file. It's likely you are looking for the .bin file"
         )
-        error(err_msg)
         sys.exit(-1)
 
-    with infile.open("rb") as f:
-        image = Image.deserialize(f.read(), name)
+    image = Image.deserialize(data, name)
 
     info(f"Flashing design {image.name}")
     board = MSPM0L2228.from_port(CONFIG["PORT"], timeout=3)
@@ -148,8 +148,15 @@ def reflash_ti(
     ] = None,
 ) -> None:
     """Shortcut for erase, flash, then start"""
-    with (infile / "hsm.bin").open("rb") as f:
-        image = Image.deserialize(f.read(), name)
+    with (infile / "hsm.bin" if infile.is_dir() else infile).open("rb") as f:
+        data = f.read()
+    if data.startswith(b"\x7fELF"):
+        error(
+            "Do not flash the .elf file. It's likely you are looking for the .bin file"
+        )
+        sys.exit(-1)
+
+    image = Image.deserialize(data, name)
 
     info("Reflashing design")
     board = MSPM0L2228.from_port(CONFIG["PORT"], timeout=3)
