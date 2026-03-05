@@ -48,7 +48,9 @@ def status_ti() -> None:
         sys.exit(-1)
 
     success("Successfully got bootloader status:")
-    success(f" - Version: {status.year}.{status.major_version}.{status.minor_version}")
+    success(
+        f" - Version: [cyan]{status.year}.{status.major_version}.{status.minor_version}"
+    )
     success(f" - Secure bootloader: {bool(status.secure)}")
     if status.installed is not None:
         success(
